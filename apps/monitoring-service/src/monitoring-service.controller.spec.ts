@@ -1,24 +1,48 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MonitoringServiceController } from './monitoring-service.controller';
-import { MonitoringServiceService } from './monitoring-service.service';
+import { MonitoringController } from './monitoring-service.controller';
+import { HealthService } from './health.service';
+import { LoggingService } from '@app/logging';
+import { PrismaService } from '@app/prisma-service';
 
-describe('MonitoringServiceController', () => {
-  let monitoringServiceController: MonitoringServiceController;
+describe('MonitoringController', () => {
+  let monitoringController: MonitoringController;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [MonitoringServiceController],
-      providers: [MonitoringServiceService],
+      controllers: [MonitoringController],
+      providers: [
+        {
+          provide: HealthService,
+          useValue: {
+            checkHealth: jest.fn(),
+            getSystemOverview: jest.fn(),
+            getServiceHealth: jest.fn(),
+          },
+        },
+        {
+          provide: LoggingService,
+          useValue: {
+            getRecentLogs: jest.fn(),
+            getLogStats: jest.fn(),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            apiLog: {
+              findMany: jest.fn(),
+            },
+          },
+        },
+      ],
     }).compile();
 
-    monitoringServiceController = app.get<MonitoringServiceController>(
-      MonitoringServiceController,
-    );
+    monitoringController = app.get<MonitoringController>(MonitoringController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(monitoringServiceController.getHello()).toBe('Hello World!');
+  describe('controller', () => {
+    it('should be defined', () => {
+      expect(monitoringController).toBeDefined();
     });
   });
 });
