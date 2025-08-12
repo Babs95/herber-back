@@ -1,0 +1,152 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  username          String   @unique
+  password          String
+  firstName         String?
+  lastName          String?
+  isActive          Boolean  @default(true)
+  role              Role     @default(AGENT_TERRAIN)
+  
+  // Gestion des changements obligatoires
+  mustChangePassword Boolean  @default(true)
+  mustChangeEmail    Boolean  @default(true)
+  isFirstLogin       Boolean  @default(true)
+  
+  // Tokens et sécurité
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  emailVerified      Boolean  @default(false)
+  
+  // Relations
+  refreshTokens      RefreshToken[]
+  
+  // Tracking
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastLoginAt       DateTime?
+  createdBy         String?
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  userId      String
+  isRevoked   Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  // Métadonnées de sécurité
+  userAgent   String?
+  ipAddress   String?
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+enum Role {
+  ADMIN
+  AGENT_TERRAIN
+}
+
+model ApiLog {
+  id          String   @id @default(cuid())
+  
+  // Informations de la requête
+  method      String   // GET, POST, PUT, DELETE
+  url         String   // /auth/login
+  statusCode  Int      // 200, 401, 500
+  
+  // Timing
+  responseTime Int     // en millisecondes
+  timestamp   DateTime @default(now())
+  
+  // Utilisateur (si authentifié)
+  userId      String?
+  userRole    String?
+  
+  // Métadonnées
+  userAgent   String?
+  ipAddress   String?
+  service     String   // api-gateway, auth-service, etc.
+  
+  // Données de la requête (optionnel)
+  requestBody String?  // JSON stringifié
+  queryParams String?  // Query parameters
+  
+  // Erreurs
+  error       String?  // Message d'erreur si applicable
+  stackTrace  String?  // Stack trace complet
+
+  @@map("api_logs")
+  @@index([timestamp])
+  @@index([service])
+  @@index([userId])
+  @@index([statusCode])
+}
+
+model HealthCheck {
+  id          String   @id @default(cuid())
+  service     String   // nom du service
+  status      String   // UP, DOWN, DEGRADED
+  
+  // Métriques de performance
+  memoryUsage Float    // MB
+  cpuUsage    Float    // %
+  uptime      Int      // secondes
+  
+  // Base de données
+  dbStatus    String   // CONNECTED, DISCONNECTED
+  dbLatency   Int      // ms
+  
+  // APIs externes
+  emailStatus String?  // SMTP status
+  
+  timestamp   DateTime @default(now())
+  details     String?  // JSON avec détails additionnels
+
+  @@map("health_checks")
+  @@index([service, timestamp])
+}
+
+model SystemMetrics {
+  id              String   @id @default(cuid())
+  
+  // Métriques générales
+  totalRequests   Int      @default(0)
+  successRequests Int      @default(0)
+  errorRequests   Int      @default(0)
+  
+  // Authentification
+  totalLogins     Int      @default(0)
+  failedLogins    Int      @default(0)
+  activeUsers     Int      @default(0)
+  
+  // Performance
+  avgResponseTime Float    @default(0)
+  peakResponseTime Int     @default(0)
+  
+  // Période
+  periodStart     DateTime
+  periodEnd       DateTime
+  period          String   // HOUR, DAY, WEEK, MONTH
+  
+  createdAt       DateTime @default(now())
+
+  @@map("system_metrics")
+  @@index([period, periodStart])
+}

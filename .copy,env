@@ -1,0 +1,36 @@
+# Database
+DATABASE_URL="postgresql://postgres:admin123@localhost:5432/microservices_db?schema=public"
+
+# JWT Configuration
+JWT_SECRET="hebersenegal-secret-jwt-2024-super-securise"
+JWT_RESET_SECRET="hebersenegal-reset-secret-2024"
+JWT_ACCESS_EXPIRES_IN="15m"  # Access token court
+JWT_REFRESH_EXPIRES_IN="7d"  # Refresh token long
+
+# Ports
+API_GATEWAY_PORT=3000
+AUTH_SERVICE_PORT=3001
+
+# 📧 EMAIL CONFIGURATION - MAILTRAP (TEST)
+SMTP_HOST="sandbox.smtp.mailtrap.io"
+SMTP_PORT=2525
+SMTP_USER="xxxxx"
+SMTP_PASS="xxxx"
+FROM_EMAIL="HeberSenegal <noreply@hebersenegal.com>"
+
+# App Configuration
+APP_NAME="HeberSenegal Platform"
+FRONTEND_URL="http://localhost:3000"
+
+# Admin par défaut
+DEFAULT_ADMIN_EMAIL="admin@hebersenegal.com"
+DEFAULT_ADMIN_PASSWORD="AdminTemp123!"
+
+# Monitoring
+MONITORING_PORT=3003
+LOG_LEVEL=info
+LOG_FILE_MAX_SIZE=20m
+LOG_FILE_MAX_FILES=14d
+
+# Health Check
+HEALTH_CHECK_INTERVAL=60000  # 1 minute
